@@ -11,15 +11,14 @@ endif
 EXTENSION := SemanticDrilldown
 
 # docker images
-MW_VERSION?=1.35
-PHP_VERSION?=7.4
-DB_TYPE?=sqlite
-DB_IMAGE?=""
+MW_VERSION?=1.39
+PHP_VERSION?=8.1
+DB_TYPE?=mysql
+DB_IMAGE?="mariadb:11.2"
 
 # extensions
-SMW_VERSION?=4.1.3
-PS_VERSION ?= 0.6.1
-AL_VERSION ?= 0.4.2
+SMW_VERSION?=4.2.0
+AL_VERSION ?= 0.6.3         # SD adds a link to BrowseData
 MAPS_VERSION ?= 9.0.7
 SRF_VERSION ?= 4.2.1
 
