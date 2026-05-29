@@ -90,9 +90,8 @@ class BuildFiltersTest extends TestCase {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Tests – no filters / no schema
-	// ---------------------------------------------------------------------------
 
+	/** Tests – no filters / no schema */
 	public function testReturnsEmptyArrayWithNullFiltersAndNoSchema(): void {
 		$calls = [];
 		$bf = new BuildFilters( $this->makeFilterSpy( $calls ), $this->makeNoSchema() );
@@ -114,9 +113,8 @@ class BuildFiltersTest extends TestCase {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Tests – parser-function driven filters (#drilldowninfo)
-	// ---------------------------------------------------------------------------
 
+	/** Tests – parser-function driven filters (#drilldowninfo) */
 	public function testBuildsOneFilterFromFilterParameter(): void {
 		$calls = [];
 		$bf = new BuildFilters( $this->makeFilterSpy( $calls ), $this->makeNoSchema() );
@@ -159,9 +157,8 @@ class BuildFiltersTest extends TestCase {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Tests – PageSchema-driven filters
-	// ---------------------------------------------------------------------------
 
+	/** Tests – PageSchema-driven filters */
 	public function testReturnsEmptyArrayWhenSchemaIsNull(): void {
 		$calls = [];
 		$bf = new BuildFilters(
@@ -370,9 +367,8 @@ class BuildFiltersTest extends TestCase {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Tests – merging both sources
-	// ---------------------------------------------------------------------------
 
+	/** Tests – merging both sources */
 	public function testMergesParserFiltersWithSchemaFilters(): void {
 		$field = $this->makeField( 'SchemaFilter', [], [ 'name' => 'SchemaProp' ] );
 		$schema = $this->makePsSchema( [ $this->makeTemplate( [ $field ] ) ] );
