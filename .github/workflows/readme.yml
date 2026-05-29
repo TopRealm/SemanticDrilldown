@@ -12,6 +12,9 @@ concurrency:
   group: adoc-build-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
 
   build:
