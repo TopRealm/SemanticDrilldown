@@ -12,6 +12,7 @@ namespace SD\Specials\BrowseData;
  */
 
 use Closure;
+use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\IncludableSpecialPage;
 use SD\AppliedFilter;
@@ -41,8 +42,8 @@ class SpecialBrowseData extends IncludableSpecialPage {
 	}
 
 	public function execute( $query ): void {
-		global $wgScriptPath, $sdgNumResultsPerPage;
-		$sdSkinsPath = "$wgScriptPath/extensions/SemanticDrilldown/skins";
+		$sdSkinsPath = $this->getConfig()->get( 'ScriptPath' ) . '/extensions/SemanticDrilldown/skins';
+		$numResultsPerPage = ( new GlobalVarConfig( 'sdg' ) )->get( 'NumResultsPerPage' );
 
 		$out = $this->getOutput();
 		$request = $this->getRequest();
@@ -52,12 +53,9 @@ class SpecialBrowseData extends IncludableSpecialPage {
 		}
 		$this->setHeaders();
 		$out->addModules( [ 'ext.semanticdrilldown.main', 'ext.smw.styles' ] );
-		$out->addScript( '<!--[if IE]><link rel="stylesheet" href="' . $sdSkinsPath . '/SD_IEfixes.css" media="screen" /><![endif]-->' );
-
-		// set default
-		if ( $sdgNumResultsPerPage == null ) {
-			$sdgNumResultsPerPage = 250;
-		}
+		$ieFixesCss = '<!--[if IE]><link rel="stylesheet" href="' . $sdSkinsPath
+			. '/SD_IEfixes.css" media="screen" /><![endif]-->';
+		$out->addScript( $ieFixesCss );
 
 		// get information on current category, subcategory and filters
 		// that have already been applied from the query string
@@ -74,12 +72,14 @@ class SpecialBrowseData extends IncludableSpecialPage {
 			$parameters = ( $this->loadParameters )( $category );
 			$category_title = $parameters->title();
 			if ( $category_title === null ) {
-				$category_title = $this->msg( 'browsedata' )->text() . html_entity_decode( $this->msg( 'colon-separator' )->text() ) . str_replace( '_', ' ', $category );
+				$category_title = $this->msg( 'browsedata' )->text()
+					. html_entity_decode( $this->msg( 'colon-separator' )->text() )
+					. str_replace( '_', ' ', $category );
 			}
 
 			[ $limit, $offset ] = $request->getLimitOffsetForUser(
 				$this->getUser(),
-				$sdgNumResultsPerPage,
+				$numResultsPerPage,
 				'sdlimit'
 			);
 
@@ -99,6 +99,10 @@ class SpecialBrowseData extends IncludableSpecialPage {
 		$out->setPageTitle( $category_title );
 	}
 
+	private static function filterNameToRequestKey( string $name ): string {
+		return str_replace( ' ', '_', $name );
+	}
+
 	private function createDrilldownQuery( $category, $parameters ) {
 		$request = $this->getRequest();
 
@@ -108,7 +112,7 @@ class SpecialBrowseData extends IncludableSpecialPage {
 		$applied_filters = [];
 		$remaining_filters = [];
 		foreach ( $filters as $i => $filter ) {
-			$filter_name = str_replace( [ ' ', "'" ], [ '_', "\'" ], $filter->name() );
+			$filter_name = self::filterNameToRequestKey( $filter->name() );
 			$search_terms = $request->getArray( '_search_' . $filter_name );
 			$lower_date = $request->getVal( '_lower_' . $filter_name );
 			$upper_date = $request->getVal( '_upper_' . $filter_name );

@@ -3,6 +3,7 @@
 namespace SD;
 
 use Closure;
+use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\WikiPageFactory;
 use MediaWiki\Title\Title;
@@ -30,13 +31,14 @@ class Services {
 			self::$instance = new Services();
 		}
 
-		return new Services();
+		return self::$instance;
 	}
 
-	private MediaWikiServices $services;
-
 	private function __construct() {
-		$this->services = MediaWikiServices::getInstance();
+	}
+
+	protected function mwServices(): MediaWikiServices {
+		return MediaWikiServices::getInstance();
 	}
 
 	private const PARSER_FUNCTIONS = [
@@ -79,15 +81,11 @@ class Services {
 	}
 
 	private function getNewQueryPage(): Closure {
-		// Using a prefix different from wg, the ServiceOptions approach does not work anymore;
-		// use the global variable instead:
-		global $sdgResultFormatTypes;
-
-		$resultFormatTypes = $sdgResultFormatTypes ?? [];
+		$resultFormatTypes = ( new GlobalVarConfig( 'sdg' ) )->get( 'ResultFormatTypes' );
 		return fn ( $context, $parameters, $query, $offset, $limit ) =>
 			new QueryPage(
 				$resultFormatTypes,
-				$this->getDbService(), $this->services->getPageProps(), $this->getNewUrlService(),
+				$this->getDbService(), $this->mwServices()->getPageProps(), $this->getNewUrlService(),
 				$this->getGetPageFromTitleText(),
 				$context, $parameters, $query, $offset, $limit );
 	}
@@ -108,7 +106,7 @@ class Services {
 	}
 
 	private function getLoadParameters(): LoadParameters {
-		return new LoadParameters( $this->services->getPageProps() );
+		return new LoadParameters( $this->mwServices()->getPageProps() );
 	}
 
 	private function getGetPageFromTitleText(): Closure {
@@ -121,11 +119,11 @@ class Services {
 	}
 
 	private function getPrimaryDbConnectionRef(): DBConnRef {
-		return $this->services->getDBLoadBalancer()->getConnection( DB_PRIMARY );
+		return $this->mwServices()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 	}
 
 	private function getReplicaDbConnectionRef(): DBConnRef {
-		return $this->services->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		return $this->mwServices()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 	}
 
 }

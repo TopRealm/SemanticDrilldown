@@ -2,6 +2,7 @@
 
 namespace SD;
 
+use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\Linker\LinksMigration;
 use MediaWiki\MediaWikiServices;
 use SD\Sql\PropertyTypeDbInfo;
@@ -40,7 +41,7 @@ class DbService {
 		$temporaryTableManager = new TemporaryTableManager( $this->dbw );
 
 		$tableName = $this->dbr->tableName( "semantic_drilldown_values" );
-		$sql0 = "DROP TABLE IF EXISTS $tableName;";
+		$sql0 = "DROP TEMPORARY TABLE IF EXISTS $tableName;";
 		$temporaryTableManager->queryWithAutoCommit( $sql0, __METHOD__ );
 
 		$sql1 = "CREATE TEMPORARY TABLE $tableName ( id INT NOT NULL )";
@@ -90,10 +91,8 @@ END;
 	 * Deletes the temporary table.
 	 */
 	public function dropFilterValuesTempTable() {
-		// DROP TEMPORARY TABLE would be marginally safer, but it's
-		// not supported on all RDBMS's.
 		$tableName = $this->dbr->tableName( "semantic_drilldown_filter_values" );
-		$sql = "DROP TABLE $tableName";
+		$sql = "DROP TEMPORARY TABLE $tableName";
 
 		$temporaryTableManager = new TemporaryTableManager( $this->dbw );
 		$temporaryTableManager->queryWithAutoCommit( $sql, __METHOD__ );
@@ -202,9 +201,7 @@ END;
 	 * @return array
 	 */
 	public function getCategoriesForBrowsing() {
-		global $sdgHideCategoriesByDefault;
-
-		if ( $sdgHideCategoriesByDefault ) {
+		if ( ( new GlobalVarConfig( 'sdg' ) )->get( 'HideCategoriesByDefault' ) ) {
 			return $this->getOnlyExplicitlyShownCategories();
 		} else {
 			return $this->getTopLevelCategories();
